@@ -38,7 +38,7 @@
 
         <v-text-field label="Cost Center"></v-text-field>
 
-        <v-btn color="success" class="mr-4">Submit</v-btn>
+        <v-btn color="success" class="mr-4">Save</v-btn>
 
         <v-btn color="error" class="mr-4" @click="reset">Reset Form</v-btn>
       </v-form>
