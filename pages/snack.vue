@@ -1,36 +1,14 @@
 <template>
   <v-container>
     <v-row>
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 1</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 2</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 3</v-card></v-col
-      >
-    </v-row>
-    <v-row>
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 4</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 5</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 6</v-card></v-col
-      >
-    </v-row>
-    <v-row>
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 7</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 8</v-card></v-col
-      >
-      <v-col col-md-3 class="text-center"
-        ><v-card height="200">Snack 9</v-card></v-col
+      <v-col
+        v-for="item in snack"
+        :key="item.id_snack"
+        col-md-3
+        class="text-center"
+        ><v-card height="200">
+          {{ item.nm_snack }}
+        </v-card></v-col
       >
     </v-row>
   </v-container>
@@ -47,7 +25,12 @@ export default {
         artist: 'Foster the People',
       },
     ],
+    snack: [],
   }),
+  async mounted() {
+    const apisnack = await this.$axios.get('/api/snack')
+    this.snack = apisnack.data.values
+  },
 }
 </script>
 
