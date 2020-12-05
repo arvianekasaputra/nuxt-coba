@@ -1,26 +1,31 @@
 <template>
   <v-card>
-    <v-card-title>
-      <v-text-field
-        v-model="search"
-        append-icon="mdi-magnify"
-        label="Search"
-        single-line
-        hide-details
-      ></v-text-field>
-    </v-card-title>
+    <v-card-title> </v-card-title>
     <v-data-table
       :headers="headers"
       :items="transaksi"
       :search="search"
-      sort-by="date"
+      sort-by="tgl"
     >
       <template v-slot:top>
         <v-toolbar flat>
           <v-toolbar-title>Mr. Booking</v-toolbar-title>
           <v-divider class="mx-4" inset vertical></v-divider>
           <v-spacer></v-spacer>
+          <v-text-field
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Search"
+            single-line
+            hide-details
+          ></v-text-field>
+          <v-spacer></v-spacer>
           <v-dialog v-model="dialog" max-width="500px">
+            <template v-slot:activator="{ on, attrs }">
+              <v-btn color="primary" dark class="mb-2" v-bind="attrs" v-on="on">
+                Booking Ruangan
+              </v-btn>
+            </template>
             <v-card>
               <v-card-text>
                 <v-container>
@@ -30,7 +35,7 @@
                         ref="menu"
                         v-model="menu"
                         :close-on-content-click="false"
-                        :return-value.sync="date"
+                        :return-value.sync="tgl"
                         transition="scale-transition"
                         offset-y
                         min-width="290px"
@@ -57,7 +62,7 @@
                           <v-btn
                             text
                             color="primary"
-                            @click="$refs.menu.save(date)"
+                            @click="$refs.menu.save(tgl)"
                           >
                             OK
                           </v-btn>
@@ -66,11 +71,14 @@
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-select
-                        v-model="editedItem.nm_ruang"
+                        v-model="editedItem.id_ruang"
                         label="Pilih Ruang"
-                        :items="items"
+                        :items="ruang"
+                        item-text="nm_ruang"
+                        item-value="id_ruang"
                         required
-                      ></v-select>
+                        >}</v-select
+                      >
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
                       <v-text-field
@@ -85,9 +93,20 @@
                       ></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="6" md="4">
+                      <v-select
+                        v-model="editedItem.id_snack"
+                        label="Pilih Snack"
+                        :items="snack"
+                        item-text="nm_snack"
+                        item-value="id_snack"
+                        required
+                        >}</v-select
+                      >
+                    </v-col>
+                    <v-col cols="12" sm="6" md="4">
                       <v-text-field
-                        v-model="editedItem.nm_snack"
-                        label="Snack"
+                        v-model="editedItem.additional"
+                        label="Keterangan"
                       ></v-text-field>
                     </v-col>
                   </v-row>
@@ -134,6 +153,8 @@
 </template>
 
 <script>
+const IDUser = 2
+
 export default {
   data: () => ({
     dialog: false,
@@ -142,41 +163,40 @@ export default {
     menu: false,
     tgl: '',
     search: '',
-    items: [
-      'SGM Explor',
-      'SGM Bunda',
-      'Bebelac',
-      'SGM Ananda',
-      'SGM Soya',
-      'Lactamil',
-      'LLM',
-      'Nutrilon Royal',
-      'RWS',
-      'Themis',
-    ],
     headers: [
       { text: 'Tanggal', value: 'tgl' },
       { text: 'Ruang', value: 'nm_ruang' },
       { text: 'Pengguna', value: 'display_nm' },
       { text: 'Aktivitas', value: 'activity' },
       { text: 'Snack', value: 'nm_snack' },
-      { text: 'Keterangan', value: 'actions', sortable: false },
+      { text: 'Keterangan', value: 'additional' },
+      { text: 'Action', value: 'actions', sortable: false },
     ],
     transaksi: [],
+    ruang: [],
+    snack: [],
     editedIndex: -1,
     editedItem: {
+      id_transaksi: '',
       tgl: '',
-      nm_ruang: 0,
-      display_nm: 0,
-      activity: 0,
-      nm_snack: 0,
+      id_ruang: '',
+      nm_ruang: '',
+      display_nm: '',
+      activity: '',
+      id_snack: '',
+      nm_snack: '',
+      additional: '',
     },
     defaultItem: {
+      id_transaksi: '',
       tgl: '',
-      nm_ruang: 0,
-      display_nm: 0,
-      activity: 0,
-      nm_snack: 0,
+      id_ruang: '',
+      nm_ruang: '',
+      display_nm: '',
+      activity: '',
+      id_snack: '',
+      nm_snack: '',
+      additional: '',
     },
   }),
 
@@ -190,8 +210,13 @@ export default {
   },
 
   async mounted() {
-    const apitransaksi = await this.$axios.get('/api/transaksi')
-    this.transaksi = apitransaksi.data.values
+    const apiruang = await this.$axios.get('/api/ruang')
+    this.ruang = apiruang.data.values
+
+    const apisnack = await this.$axios.get('/api/snack')
+    this.snack = apisnack.data.values
+
+    this.loadTransaksi()
   },
 
   created() {
@@ -200,85 +225,13 @@ export default {
 
   methods: {
     initialize() {
-      this.transaksi = [
-        {
-          tgl: '2020-10-01',
-          nm_ruang: 'SGM Explor',
-          display_nm: 'Arvian',
-          activity: 'Audit FSI',
-          nm_snack: 'Snack 1',
-        },
-        {
-          tgl: '2020-10-04',
-          nm_ruang: 'SGM Bunda',
-          display_nm: 'Eka',
-          activity: 'Audit Dango',
-          nm_snack: 'Snack 2',
-        },
-        {
-          tgl: '2020-10-07',
-          nm_ruang: 'Bebelac',
-          display_nm: 'Saputra',
-          activity: 'Audit ISO',
-          nm_snack: 'Snack 3',
-        },
-        {
-          tgl: '2020-10-10',
-          nm_ruang: 'SGM Ananda',
-          display_nm: 'Faridhotul',
-          activity: 'Safety Update',
-          nm_snack: 'Snack 4',
-        },
-        {
-          tgl: '2020-10-13',
-          nm_ruang: 'SGM Soya',
-          display_nm: 'Khasanah',
-          activity: 'Meeting Vendor',
-          nm_snack: 'Snack 5',
-        },
-        {
-          tgl: '2020-10-16',
-          nm_ruang: 'Lactamil',
-          display_nm: 'Putri',
-          activity: 'Meeting Internal',
-          nm_snack: 'Snack 1',
-        },
-        {
-          tgl: '2020-10-19',
-          nm_ruang: 'LLM',
-          display_nm: 'Meyra',
-          activity: 'Pinjam ruang',
-          nm_snack: 'Snack 2',
-        },
-        {
-          tgl: '2020-10-22',
-          nm_ruang: 'Nutrilon Royal',
-          display_nm: 'Afiyana',
-          activity: 'Interview',
-          nm_snack: 'Snack 3',
-        },
-        {
-          tgl: '2020-10-25',
-          nm_ruang: 'RWS',
-          display_nm: 'Delta',
-          activity: 'Safety Talk',
-          nm_snack: 'Snack 4',
-        },
-        {
-          tgl: '2020-10-28',
-          nm_ruang: 'Themis',
-          display_nm: 'Rizky',
-          activity: 'Plant Talk',
-          nm_snack: 'Snack 5',
-        },
-        {
-          tgl: '',
-          nm_ruang: '',
-          display_nm: '',
-          activity: '',
-          nm_snack: '',
-        },
-      ]
+      this.transaksi = []
+      this.ruang = []
+    },
+
+    async loadTransaksi() {
+      const apitransaksi = await this.$axios.get('/api/transaksi')
+      this.transaksi = apitransaksi.data.values
     },
 
     editItem(item) {
@@ -293,9 +246,15 @@ export default {
       this.dialogDelete = true
     },
 
-    deleteItemConfirm() {
-      this.transaksi.splice(this.editedIndex, 1)
-      this.closeDelete()
+    async deleteItemConfirm() {
+      const apideletetransaksi = await this.$axios.post('/api/transaksi', {
+        id_transaksi: this.editedItem.id_transaksi,
+      })
+      window.alert(apideletetransaksi.data.values)
+      if (apideletetransaksi.data.status === 200) {
+        this.loadTransaksi()
+        this.closeDelete()
+      }
     },
 
     close() {
@@ -314,13 +273,40 @@ export default {
       })
     },
 
-    save() {
+    async save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.transaksi[this.editedIndex], this.editedItem)
+        // Object.assign(this.transaksi[this.editedIndex], this.editedItem)
+        const apiupdatetransaksi = await this.$axios.put('/api/transaksi', {
+          tgl: this.editedItem.tgl,
+          id_ruang: this.editedItem.id_ruang,
+          id_user: IDUser,
+          activity: this.editedItem.activity,
+          id_snack: this.editedItem.id_snack,
+          additional: this.editedItem.additional,
+          id_transaksi: this.editedItem.id_transaksi,
+        })
+        // window.alert(apiupdatetransaksi.data.values)
+        if (apiupdatetransaksi.data.status === 200) {
+          this.loadTransaksi()
+          this.close()
+        }
       } else {
-        this.transaksi.push(this.editedItem)
+        // this.transaksi.push(this.editedItem)
+        const apicreatetransaksi = await this.$axios.post('/api/transaksi', {
+          tgl: this.editedItem.tgl,
+          id_ruang: this.editedItem.id_ruang,
+          id_user: IDUser,
+          activity: this.editedItem.activity,
+          id_snack: this.editedItem.id_snack,
+          additional: this.editedItem.additional,
+          id_transaksi: this.editedItem.id_transaksi,
+        })
+        // window.alert(apiupdatetransaksi.data.values)
+        if (apicreatetransaksi.data.status === 200) {
+          this.loadTransaksi()
+          this.close()
+        }
       }
-      this.close()
     },
   },
 }

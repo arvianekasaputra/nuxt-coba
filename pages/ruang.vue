@@ -4,9 +4,9 @@
       <v-col
         v-for="item in ruang"
         :key="item.id_ruang"
-        col-md-3
+        cols="sm"
         class="text-center"
-        ><v-card height="200">{{ item.nm_ruang }}</v-card></v-col
+        ><v-card class="pa-3" height="200">{{ item.nm_ruang }}</v-card></v-col
       >
     </v-row>
   </v-container>
@@ -18,6 +18,12 @@ export default {
     return {
       ruang: [],
     }
+  },
+  computed: {
+    cols() {
+      const { lg, sm } = this.$vuetify.breakpoint
+      return lg ? [3, 9] : sm ? [9, 3] : [6, 6]
+    },
   },
   async mounted() {
     const apiruang = await this.$axios.get('/api/ruang')
